@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Book Rental System for CSUMB Library</string>
+
+    <string name="title_activity_account_creation">AccountCreationActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="title_activity_place_hold">PlaceHoldActivity</string>
+    <string name="title_activity_cancel_hold">CancelHoldActivity</string>
+    <string name="title_activity_manage_system">ManageSystemActivity</string>
+</resources>
