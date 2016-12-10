@@ -51,6 +51,24 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.android.bookrentalsystemforcsumblibrary.MainActivity" />
         </activity>
+        <activity
+            android:name=".transactionloganddatabase.TransactionLogFragment"
+            android:label="@string/title_activity_transaction_log"
+            android:parentActivityName=".ManageSystemActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.android.bookrentalsystemforcsumblibrary.ManageSystemActivity" />
+        </activity>
+        <activity
+            android:name=".transactionloganddatabase.TransactionLogActivity"
+            android:label="@string/title_activity_transaction_log"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.android.bookrentalsystemforcsumblibrary.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

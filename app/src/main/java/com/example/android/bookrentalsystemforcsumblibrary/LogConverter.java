@@ -1,6 +1,12 @@
 package com.example.android.bookrentalsystemforcsumblibrary;
 
 
+import android.content.ContentValues;
+
+import static com.example.android.bookrentalsystemforcsumblibrary.transactionloganddatabase.SystemDataBase.TRANSACTION_DATE;
+import static com.example.android.bookrentalsystemforcsumblibrary.transactionloganddatabase.SystemDataBase.TRANSACTION_TYPE;
+import static com.example.android.bookrentalsystemforcsumblibrary.transactionloganddatabase.SystemDataBase.TRANSACTION_USER;
+
 public class LogConverter {
 
     String transactionType, userName, currentDate, bookTitle, pickupDate, returnDate;
@@ -40,6 +46,12 @@ public class LogConverter {
         this.transactionTotal = transactionTotal;
     }
 
+    public void putCV(ContentValues cv){
+        cv.put(TRANSACTION_TYPE, transactionType);
+        cv.put(TRANSACTION_USER, userName);
+        cv.put(TRANSACTION_DATE, currentDate);
+
+    }
     public String getTransactionType() {
         return transactionType;
     }
@@ -102,5 +114,9 @@ public class LogConverter {
 
     public void setTransactionTotal(double transactionTotal) {
         this.transactionTotal = transactionTotal;
+    }
+
+    public String toString(){
+        return transactionType + "\nUSER: " + userName + " DATE: " + currentDate;
     }
 }

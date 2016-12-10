@@ -7,4 +7,6 @@
     <string name="title_activity_place_hold">PlaceHoldActivity</string>
     <string name="title_activity_cancel_hold">CancelHoldActivity</string>
     <string name="title_activity_manage_system">ManageSystemActivity</string>
+    <string name="title_activity_transaction_log">TransactionLogActivity</string>
+    <string name="action_settings">Settings</string>
 </resources>

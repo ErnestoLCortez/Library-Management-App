@@ -1,10 +1,9 @@
 package com.example.android.bookrentalsystemforcsumblibrary;
 
+import android.content.DialogInterface;
 import android.icu.text.SimpleDateFormat;
-import android.icu.util.Calendar;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
@@ -16,11 +15,15 @@ import android.widget.Toast;
 
 import android.database.SQLException;
 
+import com.example.android.bookrentalsystemforcsumblibrary.transactionloganddatabase.SystemDataBase;
+
 import java.util.Date;
-import java.util.HashSet;
 
 public class AccountCreationActivity extends AppCompatActivity implements TextView.OnEditorActionListener {
 
+    int regexErrorCounter;
+    int duplicateErrorCounter;
+    AlertDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,11 +32,22 @@ public class AccountCreationActivity extends AppCompatActivity implements TextVi
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
         ((EditText)findViewById(R.id.user_field)).setOnEditorActionListener(this);
         ((EditText)findViewById(R.id.password_field)).setOnEditorActionListener(this);
 
+        regexErrorCounter = 0;
+        duplicateErrorCounter =0;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setMessage("Too Many Failed Attempts!").setTitle("ERROR");
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                finish();
+            }
+        });
+
+        dialog = builder.create();
 
     }
 
@@ -63,12 +77,19 @@ public class AccountCreationActivity extends AppCompatActivity implements TextVi
     private String getCurrentTime(){
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//dd/MM/yyyy
         Date now = new Date();
-        String strDate = sdfDate.format(now);
-        return strDate;
+        return sdfDate.format(now);
+    }
+
+    private void creationError(){
+        if(duplicateErrorCounter >=2 || regexErrorCounter >= 2){
+            dialog.show();
+        }
     }
 
     public void createUser(View v){
         if(!checkUserInput(findViewById(R.id.user_field)) || !checkUserInput(findViewById(R.id.password_field))){
+            regexErrorCounter++;
+            creationError();
             return;
         }
 
@@ -79,11 +100,15 @@ public class AccountCreationActivity extends AppCompatActivity implements TextVi
         } catch (SQLException e) {
             e.printStackTrace();
             Toast.makeText(getBaseContext(), "User Name Already Exists!", Toast.LENGTH_SHORT).show();
+            duplicateErrorCounter++;
+            creationError();
             return;
         }
 
-        LogConverter log = new LogConverter(user.getUserName(), user.getUserPassword(), getCurrentTime());
-
+        Toast.makeText(getBaseContext(), "User Name Created Successfully!", Toast.LENGTH_SHORT).show();
+        LogConverter log = new LogConverter("New Account", user.getUserName(), getCurrentTime());
+        db.insertLog(log);
+        finish();
 
     }
 

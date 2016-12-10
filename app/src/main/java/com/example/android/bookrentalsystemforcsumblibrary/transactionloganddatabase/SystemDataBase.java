@@ -1,4 +1,4 @@
-package com.example.android.bookrentalsystemforcsumblibrary;
+package com.example.android.bookrentalsystemforcsumblibrary.transactionloganddatabase;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -8,10 +8,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import android.database.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
+import com.example.android.bookrentalsystemforcsumblibrary.LibraryUser;
+import com.example.android.bookrentalsystemforcsumblibrary.LogConverter;
+
+import java.util.ArrayList;
 
 /**
  * Created by atomi on 12/1/2016.
@@ -199,6 +200,24 @@ public class SystemDataBase {
             db.close();
     }
 
+    private static LibraryUser getUserFromCursor(Cursor cursor) {
+        if (cursor == null || cursor.getCount() == 0){
+            return null;
+        }
+        else {
+            try {
+                LibraryUser user = new LibraryUser(
+                        cursor.getString(USER_NAME_COL),
+                        cursor.getString(USER_PASSWORD_COL),
+                        cursor.getInt(USER_ADMIN_COL)
+                );
+                return user;
+            }
+            catch(Exception e) {
+                return null;
+            }
+        }
+    }
     /************************
      * Public Methods
      ************************/
@@ -220,6 +239,60 @@ public class SystemDataBase {
         this.closeDB();
 
         return rowID;
+    }
+
+    public LibraryUser getUser(String userName, String userPassword) {
+        String where = USER_NAME + "= ? AND " + USER_PASSWORD + "= ?";
+        String[] whereArgs = { userName, userPassword };
+
+        this.openReadableDB();
+        Cursor cursor = db.query(USER_TABLE,
+                null, where, whereArgs, null, null, null);
+        cursor.moveToFirst();
+        LibraryUser user = getUserFromCursor(cursor);
+        if (cursor != null)
+            cursor.close();
+        this.closeDB();
+
+        return user;
+    }
+
+    public long insertLog(LogConverter log)throws SQLException{
+        ContentValues cv = new ContentValues();
+        log.putCV(cv);
+
+        long rowID;
+        this.openWriteableDB();
+        try {
+            rowID = db.insertOrThrow(TRANSACTION_TABLE, null, cv);
+        } catch (SQLException e) {
+            throw e;
+        }
+
+        this.closeDB();
+
+        return rowID;
+    }
+
+    public ArrayList<String> getLogs() {
+        ArrayList<String> list = new ArrayList<>();
+        openReadableDB();
+        Cursor cursor = db.query(TRANSACTION_TABLE,
+                null, null, null, null, null, null);
+
+        while(cursor.moveToNext()) {
+            LogConverter temp = new LogConverter(
+                    cursor.getString(TRANSACTION_TYPE_COL),
+                    cursor.getString(TRANSACTION_USER_COL),
+                    cursor.getString(TRANSACTION_DATE_COL));
+            list.add(temp.toString());
+        }
+
+        if(cursor != null)
+            cursor.close();
+        closeDB();
+
+        return list;
     }
 //    public ArrayList<List> getLists() {
 //        ArrayList<List> lists = new ArrayList<List>();
