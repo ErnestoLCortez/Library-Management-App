@@ -1,5 +1,6 @@
 package com.example.android.bookrentalsystemforcsumblibrary.transactionloganddatabase;
 
+import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -42,9 +43,9 @@ public class TransactionLogFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 String log = logAdapter.getItem(position);
-               // Intent intent = new Intent(getActivity(), DetailActivity.class)
-               //         .putExtra(Intent.EXTRA_TEXT, forecast);
-               // startActivity(intent);
+                Intent intent = new Intent(getActivity(), DetailActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT, log);
+                startActivity(intent);
             }
         });
 

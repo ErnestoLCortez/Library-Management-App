@@ -69,6 +69,24 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.android.bookrentalsystemforcsumblibrary.MainActivity" />
         </activity>
+        <activity
+            android:name=".transactionloganddatabase.DetailActivity"
+            android:label="@string/title_activity_detail"
+            android:parentActivityName=".transactionloganddatabase.TransactionLogActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.android.bookrentalsystemforcsumblibrary.transactionloganddatabase.TransactionLogActivity" />
+        </activity>
+        <activity
+            android:name=".transactionloganddatabase.NewBook"
+            android:label="@string/title_activity_new_book"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.android.bookrentalsystemforcsumblibrary.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

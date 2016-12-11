@@ -15,6 +15,8 @@ import android.widget.Toast;
 
 import android.database.SQLException;
 
+import com.example.android.bookrentalsystemforcsumblibrary.helperobjects.LibraryUser;
+import com.example.android.bookrentalsystemforcsumblibrary.helperobjects.LogConverter;
 import com.example.android.bookrentalsystemforcsumblibrary.transactionloganddatabase.SystemDataBase;
 
 import java.util.Date;
@@ -38,6 +40,13 @@ public class AccountCreationActivity extends AppCompatActivity implements TextVi
         regexErrorCounter = 0;
         duplicateErrorCounter =0;
 
+
+
+        dialog = buildDialogBox();
+
+    }
+
+    private AlertDialog buildDialogBox(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         builder.setMessage("Too Many Failed Attempts!").setTitle("ERROR");
@@ -46,9 +55,7 @@ public class AccountCreationActivity extends AppCompatActivity implements TextVi
                 finish();
             }
         });
-
-        dialog = builder.create();
-
+        return builder.create();
     }
 
     private boolean checkRegEx(String text){

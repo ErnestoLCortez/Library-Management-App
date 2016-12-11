@@ -1,4 +1,4 @@
-package com.example.android.bookrentalsystemforcsumblibrary;
+package com.example.android.bookrentalsystemforcsumblibrary.helperobjects;
 
 
 import android.content.ContentValues;

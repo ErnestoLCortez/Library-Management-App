@@ -1,20 +1,24 @@
 package com.example.android.bookrentalsystemforcsumblibrary;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.bookrentalsystemforcsumblibrary.helperobjects.LibraryUser;
 import com.example.android.bookrentalsystemforcsumblibrary.transactionloganddatabase.SystemDataBase;
 import com.example.android.bookrentalsystemforcsumblibrary.transactionloganddatabase.TransactionLogActivity;
 
 public class ManageSystemActivity extends AppCompatActivity {
     private TextView userField;
     private TextView passwordField;
-
+    private AlertDialog errorDialog;
+    private int errorCounter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,9 +31,28 @@ public class ManageSystemActivity extends AppCompatActivity {
 
         userField = ((TextView)findViewById(R.id.user_field));
         passwordField = ((TextView)findViewById(R.id.password_field));
+        errorDialog = buildDialogBox();
+        errorCounter = 0;
     }
 
+    private AlertDialog buildDialogBox(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
+        builder.setMessage("Too Many Failed Attempts!").setTitle("ERROR");
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                finish();
+            }
+        });
+        return builder.create();
+    }
+
+    private void loginFailed(){
+        errorCounter++;
+        if(errorCounter >= 2){
+            errorDialog.show();
+        }
+    }
 
     public void signIn(View view){
         SystemDataBase db = new SystemDataBase(this);
@@ -37,10 +60,12 @@ public class ManageSystemActivity extends AppCompatActivity {
 
         if(user == null || user.getIsAdmin() != 1){
             Toast.makeText(getBaseContext(), "Incorrect Username or Password", Toast.LENGTH_SHORT).show();
+            loginFailed();
             return;
         }
 
         startActivity(new Intent(view.getContext(), TransactionLogActivity.class));
+        finish();
 
 
     }

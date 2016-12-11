@@ -9,8 +9,9 @@ import android.util.Log;
 
 import android.database.SQLException;
 
-import com.example.android.bookrentalsystemforcsumblibrary.LibraryUser;
-import com.example.android.bookrentalsystemforcsumblibrary.LogConverter;
+import com.example.android.bookrentalsystemforcsumblibrary.helperobjects.LibraryBook;
+import com.example.android.bookrentalsystemforcsumblibrary.helperobjects.LibraryUser;
+import com.example.android.bookrentalsystemforcsumblibrary.helperobjects.LogConverter;
 
 import java.util.ArrayList;
 
@@ -128,9 +129,9 @@ public class SystemDataBase {
     public static final String CREATE_BOOK_TABLE =
             "CREATE TABLE " + BOOK_TABLE + " (" +
                     BOOK_ID      + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    BOOK_TITLE   + " TEXT NOT NULL, " +
+                    BOOK_TITLE   + " TEXT NOT NULL UNIQUE, " +
                     BOOK_AUTHOR  + " TEXT NOT NULL, " +
-                    BOOK_ISBN    + " TEXT NOT NULL, " +
+                    BOOK_ISBN    + " TEXT NOT NULL UNIQUE, " +
                     BOOK_FEE     + " REAL NOT NULL);";
 
     public static final String CREATE_TRANSACTION_TABLE =
@@ -255,6 +256,26 @@ public class SystemDataBase {
         this.closeDB();
 
         return user;
+    }
+
+    public long insertBook(LibraryBook book) throws SQLException{
+        ContentValues cv = new ContentValues();
+        cv.put(BOOK_TITLE, book.getTitle());
+        cv.put(BOOK_AUTHOR, book.getAuthor());
+        cv.put(BOOK_ISBN, book.getIsbn());
+        cv.put(BOOK_FEE, book.getFee());
+
+        long rowID;
+        this.openWriteableDB();
+        try {
+            rowID = db.insertOrThrow(BOOK_TABLE, null, cv);
+        } catch (SQLException e) {
+            throw e;
+        }
+
+        this.closeDB();
+
+        return rowID;
     }
 
     public long insertLog(LogConverter log)throws SQLException{

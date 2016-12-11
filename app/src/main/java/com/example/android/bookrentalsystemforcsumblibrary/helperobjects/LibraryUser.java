@@ -1,4 +1,4 @@
-package com.example.android.bookrentalsystemforcsumblibrary;
+package com.example.android.bookrentalsystemforcsumblibrary.helperobjects;
 
 /**
  * Created by atomi on 12/8/2016.
