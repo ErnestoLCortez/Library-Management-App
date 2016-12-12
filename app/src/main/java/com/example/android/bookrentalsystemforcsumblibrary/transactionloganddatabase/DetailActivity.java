@@ -28,6 +28,8 @@ public class DetailActivity extends AppCompatActivity {
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
         }
+
+
     }
 
     public static class PlaceholderFragment extends Fragment {

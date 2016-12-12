@@ -23,7 +23,6 @@ public class TransactionLogFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Log.e("Stuff", "Stuff");
         SystemDataBase db = new SystemDataBase(getContext());
 
         logAdapter =

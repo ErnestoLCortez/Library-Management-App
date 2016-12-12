@@ -82,7 +82,7 @@ public class SystemDataBase {
     public static final int    TRANSACTION_DATE_COL = 3;
 
     /************************
-     * Hold Transaction Table Constants
+     * Cancel Transaction Table Constants
      ************************/
 
     public static final String CANCEL_TABLE = "cancel_transaction";
@@ -90,17 +90,20 @@ public class SystemDataBase {
     public static final String CANCEL_ID = "_id";
     public static final int    CANCEL_ID_COL = 0;
 
+    public static final String CANCEL_HOLD_ID = "hold_id";
+    public static final int    CANCEL_HOLD_ID_COL = 1;
+
     public static final String CANCEL_TITLE = "book_title";
-    public static final int    CANCEL_TITLE_COL = 1;
+    public static final int    CANCEL_TITLE_COL = 2;
 
     public static final String CANCEL_PICKUP = "pickup_date";
-    public static final int    CANCEL_PICKUP_COL = 2;
+    public static final int    CANCEL_PICKUP_COL = 3;
 
     public static final String CANCEL_RETURN = "return_date";
-    public static final int    CANCEL_RETURN_COL = 3;
+    public static final int    CANCEL_RETURN_COL = 4;
 
     /************************
-     * Cancel Transaction Table Constants
+     * Hold Transaction Table Constants
      ************************/
 
     public static final String HOLD_TABLE = "hold_transaction";
@@ -113,6 +116,15 @@ public class SystemDataBase {
 
     public static final String HOLD_TOTAL = "transaction_total";
     public static final int    HOLD_TOTAL_COL = 2;
+
+    public static final String HOLD_TITLE = "book_title";
+    public static final int    HOLD_TITLE_COL = 3;
+
+    public static final String HOLD_PICKUP = "pickup_date";
+    public static final int    HOLD_PICKUP_COL = 4;
+
+    public static final String HOLD_RETURN = "return_date";
+    public static final int    HOLD_RETURN_COL = 5;
 
 
 
@@ -144,16 +156,21 @@ public class SystemDataBase {
     public static final String CREATE_CANCEL_TABLE =
             "CREATE TABLE " + CANCEL_TABLE + " (" +
                     CANCEL_ID      + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    CANCEL_HOLD_ID   + " INTEGER NOT NULL, " +
                     CANCEL_TITLE   + " TEXT NOT NULL, " +
                     CANCEL_PICKUP  + " TEXT NOT NULL, " +
                     CANCEL_RETURN    + " TEXT NOT NULL, " +
-                    "FOREIGN KEY (" + CANCEL_ID + ") REFERENCES " + TRANSACTION_TABLE + "(" + TRANSACTION_ID + "));";
+                    "FOREIGN KEY (" + CANCEL_ID + ") REFERENCES " + TRANSACTION_TABLE + "(" + TRANSACTION_ID + "), " +
+    "FOREIGN KEY (" + CANCEL_HOLD_ID + ") REFERENCES " + HOLD_TABLE + "(" + HOLD_ID + "));";
 
     public static final String CREATE_HOLD_TABLE =
             "CREATE TABLE " + HOLD_TABLE + " (" +
                     HOLD_ID      + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    HOLD_RESERVATION   + " TEXT NOT NULL, " +
+                    HOLD_RESERVATION   + " INTEGER NOT NULL, " +
                     HOLD_TOTAL  + " TEXT NOT NULL, " +
+                    HOLD_TITLE  + " TEXT NOT NULL, " +
+                    HOLD_PICKUP  + " TEXT NOT NULL, " +
+                    HOLD_RETURN  + " TEXT NOT NULL, " +
                     "FOREIGN KEY (" + HOLD_ID + ") REFERENCES " + TRANSACTION_TABLE + "(" + TRANSACTION_ID + "));";
 
     public static final String DROP_USER_TABLE =
@@ -306,6 +323,43 @@ public class SystemDataBase {
                     cursor.getString(TRANSACTION_TYPE_COL),
                     cursor.getString(TRANSACTION_USER_COL),
                     cursor.getString(TRANSACTION_DATE_COL));
+            list.add(temp.toString());
+        }
+
+        if(cursor != null)
+            cursor.close();
+        closeDB();
+
+        return list;
+    }
+
+    public ArrayList<String> getBooks(String pickupTime, String returnTime) {
+        ArrayList<String> list = new ArrayList<>();
+        openReadableDB();
+
+        String holdTransactions = "SELECT * " +
+                "FROM hold_transaction t1 " +
+                "LEFT JOIN cancel_transaction t2 ON t1._id = t2.hold_id " +
+                "WHERE t2.hold_id IS NULL";
+
+        String invalidBooks = "SELECT * " +
+                "FROM (" + holdTransactions + ") " +
+                "WHERE pickup_date BETWEEN '" + pickupTime + "' AND '" + returnTime+ "' AND " +
+                "return_date BETWEEN '" + pickupTime + "' AND '" + returnTime + "'";
+
+        String validBooks = "SELECT t3.book_title, t3.book_author, t3.book_isbn, t3.book_fee " +
+                "FROM " + BOOK_TABLE + " as t3 " +
+                "LEFT JOIN (" + invalidBooks + ") as t4 ON t3.book_title = t4.book_title " +
+                "WHERE t4.book_title IS NULL";
+
+        Cursor cursor = db.rawQuery(validBooks, null);
+
+        while(cursor.moveToNext()) {
+            LibraryBook temp = new LibraryBook(
+                    cursor.getString(0),
+                    cursor.getString(1),
+                    cursor.getString(2),
+                    cursor.getDouble(3));
             list.add(temp.toString());
         }
 
