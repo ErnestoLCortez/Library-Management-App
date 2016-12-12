@@ -144,7 +144,7 @@ public class PlaceHoldActivity extends AppCompatActivity {
         long dayDiff = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 
         if(dayDiff > 7){
-            Toast.makeText(getBaseContext(), "Greater than 7 days ", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getBaseContext(), "Unable to Reserve Books Longer Than 7 Days! ", Toast.LENGTH_SHORT).show();
         }
         else{
             updateListView(date1, date2);

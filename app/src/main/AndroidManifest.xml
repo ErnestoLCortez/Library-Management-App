@@ -96,6 +96,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.android.bookrentalsystemforcsumblibrary.MainActivity" />
         </activity>
+        <activity
+            android:name=".HoldLogActivity"
+            android:label="@string/title_activity_hold_log"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.android.bookrentalsystemforcsumblibrary.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

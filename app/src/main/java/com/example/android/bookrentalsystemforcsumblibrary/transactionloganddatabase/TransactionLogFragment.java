@@ -42,8 +42,7 @@ public class TransactionLogFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 String log = logAdapter.getItem(position);
-                Intent intent = new Intent(getActivity(), DetailActivity.class)
-                        .putExtra(Intent.EXTRA_TEXT, log);
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
                 startActivity(intent);
             }
         });

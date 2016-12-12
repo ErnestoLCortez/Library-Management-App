@@ -15,6 +15,9 @@ import com.example.android.bookrentalsystemforcsumblibrary.helperobjects.LogConv
 
 import java.util.ArrayList;
 
+import static android.R.attr.id;
+import static android.R.id.list;
+
 /**
  * Created by atomi on 12/1/2016.
  */
@@ -236,6 +239,70 @@ public class SystemDataBase {
             }
         }
     }
+
+    private static LogConverter getHoldLogFromCursor(Cursor cursor) {
+        if (cursor == null || cursor.getCount() == 0){
+            return null;
+        }
+        else {
+            try {
+                Log.e("Test1", cursor.getString(1));
+                Log.e("Test2", cursor.getString(2));
+                Log.e("Test3", cursor.getString(3));
+                Log.e("Test4", cursor.getString(4));
+                Log.e("Test5", cursor.getString(5));
+                Log.e("Test6", cursor.getString(6));
+                Log.e("Test7", cursor.getString(7));
+                Log.e("Test8", cursor.getString(8));
+
+                return new LogConverter(
+                        cursor.getString(1),
+                        cursor.getString(2),
+                        cursor.getString(3),
+                        cursor.getString(6),
+                        cursor.getString(7),
+                        cursor.getString(8),
+                        cursor.getInt(4),
+                        cursor.getDouble(5)
+
+                );
+
+            }
+            catch(Exception e) {
+                return null;
+            }
+        }
+    }
+
+    private static LogConverter getCancelLogFromCursor(Cursor cursor) {
+        if (cursor == null || cursor.getCount() == 0){
+            return null;
+        }
+        else {
+            try {
+                Log.e("Test1", cursor.getString(1));
+                Log.e("Test2", cursor.getString(2));
+                Log.e("Test3", cursor.getString(3));
+                Log.e("Test4", cursor.getString(4));
+                Log.e("Test5", cursor.getString(5));
+                Log.e("Test6", cursor.getString(6));
+                Log.e("Test7", cursor.getString(7));
+
+                return new LogConverter(
+                        cursor.getString(1),
+                        cursor.getString(2),
+                        cursor.getString(3),
+                        cursor.getString(5),
+                        cursor.getString(6),
+                        cursor.getString(7)
+                );
+
+            }
+            catch(Exception e) {
+                return null;
+            }
+        }
+    }
     /************************
      * Public Methods
      ************************/
@@ -297,7 +364,14 @@ public class SystemDataBase {
 
     public long insertLog(LogConverter log)throws SQLException{
         ContentValues cv = new ContentValues();
-        log.putCV(cv);
+        ContentValues cv2 = null;
+        if(log.getTransactionType().equalsIgnoreCase("new account"))
+            log.putCV(cv);
+        else{
+            cv2 = new ContentValues();
+            log.putCV(cv, cv2);
+        }
+
 
         long rowID;
         this.openWriteableDB();
@@ -307,11 +381,60 @@ public class SystemDataBase {
             throw e;
         }
 
+        if(log.getTransactionType().equalsIgnoreCase("Place Hold")){
+            cv2.put(HOLD_ID, rowID);
+            try {
+                db.insertOrThrow(HOLD_TABLE, null, cv2);
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+
+        if(log.getTransactionType().equalsIgnoreCase("Cancel Hold")){
+            cv2.put(CANCEL_ID, rowID);
+            try {
+                db.insertOrThrow(CANCEL_TABLE, null, cv2);
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+
         this.closeDB();
 
         return rowID;
     }
 
+    public ArrayList<String> getHoldLogs(String userName) {
+        ArrayList<String> list = new ArrayList<>();
+        String where = TRANSACTION_USER + "= ?";
+        String[] whereArgs = {userName};
+
+        this.openReadableDB();
+
+        String tableQuery = "(SELECT * " +
+                "FROM main_transaction " +
+                "NATURAL JOIN hold_transaction t1 " +
+                "LEFT JOIN cancel_transaction t2 ON t1._id = t2.hold_id " +
+                "WHERE t2.hold_id IS NULL)";
+
+
+        Cursor cursor = db.query(tableQuery,
+                null, where, whereArgs, null, null, null);
+
+        while(cursor.moveToNext()){
+            list.add(cursor.getInt(0) + "\t" + getHoldLogFromCursor(cursor).toString());
+        }
+
+        if(cursor != null)
+            cursor.close();
+        closeDB();
+
+        if(list.isEmpty())
+            list.add("No reservations found!");
+
+        return list;
+
+    }
     public ArrayList<String> getLogs() {
         ArrayList<String> list = new ArrayList<>();
         openReadableDB();
@@ -319,18 +442,47 @@ public class SystemDataBase {
                 null, null, null, null, null, null);
 
         while(cursor.moveToNext()) {
-            LogConverter temp = new LogConverter(
-                    cursor.getString(TRANSACTION_TYPE_COL),
-                    cursor.getString(TRANSACTION_USER_COL),
-                    cursor.getString(TRANSACTION_DATE_COL));
-            list.add(temp.toString());
+            if(cursor.getString(TRANSACTION_TYPE_COL).equalsIgnoreCase("New Account")) {
+                LogConverter temp = new LogConverter(
+                        cursor.getString(TRANSACTION_TYPE_COL),
+                        cursor.getString(TRANSACTION_USER_COL),
+                        cursor.getString(TRANSACTION_DATE_COL));
+                list.add(temp.toString());
+            } else if(cursor.getString(TRANSACTION_TYPE_COL).equalsIgnoreCase("Place Hold")){
+                LogConverter temp = getLog(cursor.getString(TRANSACTION_ID_COL));
+                list.add(temp.toString());
+            } else {
+                LogConverter temp = getCLog(cursor.getString(TRANSACTION_ID_COL));
+                list.add(temp.toString());
+            }
         }
-
         if(cursor != null)
             cursor.close();
         closeDB();
 
         return list;
+    }
+
+    public LogConverter getLog(String iD){
+        if(db == null)
+            openReadableDB();
+        Cursor cursor = db.rawQuery("SELECT * " +
+                "FROM main_transaction " +
+                "NATURAL JOIN hold_transaction " +
+                "WHERE _id = " + iD, null);
+        cursor.moveToFirst();
+        return getHoldLogFromCursor(cursor);
+    }
+
+    public LogConverter getCLog(String iD){
+        if(db == null)
+            openReadableDB();
+        Cursor cursor = db.rawQuery("SELECT * " +
+                "FROM main_transaction " +
+                "NATURAL JOIN cancel_transaction " +
+                "WHERE _id = " + iD, null);
+        cursor.moveToFirst();
+        return getCancelLogFromCursor(cursor);
     }
 
     public ArrayList<String> getBooks(String pickupTime, String returnTime) {
@@ -344,7 +496,7 @@ public class SystemDataBase {
 
         String invalidBooks = "SELECT * " +
                 "FROM (" + holdTransactions + ") " +
-                "WHERE pickup_date BETWEEN '" + pickupTime + "' AND '" + returnTime+ "' AND " +
+                "WHERE pickup_date BETWEEN '" + pickupTime + "' AND '" + returnTime+ "' OR " +
                 "return_date BETWEEN '" + pickupTime + "' AND '" + returnTime + "'";
 
         String validBooks = "SELECT t3.book_title, t3.book_author, t3.book_isbn, t3.book_fee " +
@@ -367,150 +519,10 @@ public class SystemDataBase {
             cursor.close();
         closeDB();
 
+        if(list.isEmpty())
+            list.add("No books available for this time range!");
         return list;
     }
-//    public ArrayList<List> getLists() {
-//        ArrayList<List> lists = new ArrayList<List>();
-//        openReadableDB();
-//        Cursor cursor = db.query(LIST_TABLE,
-//                null, null, null, null, null, null);
-//        while (cursor.moveToNext()) {
-//            List list = new List();
-//            list.setId(cursor.getInt(LIST_ID_COL));
-//            list.setName(cursor.getString(LIST_NAME_COL));
-//
-//            lists.add(list);
-//        }
-//        if (cursor != null)
-//            cursor.close();
-//        closeDB();
-//
-//        return lists;
-//    }
-//
-//
-//    public List getList(String name) {
-//        String where = LIST_NAME + "= ?";
-//        String[] whereArgs = { name };
-//
-//        openReadableDB();
-//        Cursor cursor = db.query(LIST_TABLE, null,
-//                where, whereArgs, null, null, null);
-//        List list = null;
-//        cursor.moveToFirst();
-//        list = new List(cursor.getInt(LIST_ID_COL),
-//                cursor.getString(LIST_NAME_COL));
-//        if (cursor != null)
-//            cursor.close();
-//        this.closeDB();
-//
-//        return list;
-//    }
-//
-//    public ArrayList<Task> getTasks(String listName) {
-//        String where = TASK_LIST_ID + "= ?";
-//        int listID = getList(listName).getId();
-//        String[] whereArgs = { Integer.toString(listID) };
-//
-//        this.openReadableDB();
-//        Cursor cursor = db.query(TASK_TABLE, null,
-//                where, whereArgs,
-//                null, null, null);
-//        ArrayList<Task> tasks = new ArrayList<Task>();
-//        while (cursor.moveToNext()) {
-//            tasks.add(getTaskFromCursor(cursor));
-//        }
-//        if (cursor != null)
-//            cursor.close();
-//        this.closeDB();
-//
-//        return tasks;
-//    }
-//
-//    public Task getTask(int id) {
-//        String where = TASK_ID + "= ?";
-//        String[] whereArgs = { Integer.toString(id) };
-//
-//        this.openReadableDB();
-//        Cursor cursor = db.query(TASK_TABLE,
-//                null, where, whereArgs, null, null, null);
-//        cursor.moveToFirst();
-//        Task task = getTaskFromCursor(cursor);
-//        if (cursor != null)
-//            cursor.close();
-//        this.closeDB();
-//
-//        return task;
-//    }
-//
-//    private static Task getTaskFromCursor(Cursor cursor) {
-//        if (cursor == null || cursor.getCount() == 0){
-//            return null;
-//        }
-//        else {
-//            try {
-//                Task task = new Task(
-//                        cursor.getInt(TASK_ID_COL),
-//                        cursor.getInt(TASK_LIST_ID_COL),
-//                        cursor.getString(TASK_NAME_COL),
-//                        cursor.getString(TASK_NOTES_COL),
-//                        cursor.getString(TASK_COMPLETED_COL),
-//                        cursor.getString(TASK_HIDDEN_COL),
-//                        cursor.getDouble(TASK_FEE_COL)
-//                );
-//                return task;
-//            }
-//            catch(Exception e) {
-//                return null;
-//            }
-//        }
-//    }
-//
-//    public long insertTask(Task task) {
-//        ContentValues cv = new ContentValues();
-//        cv.put(TASK_LIST_ID, task.getListId());
-//        cv.put(TASK_NAME, task.getName());
-//        cv.put(TASK_NOTES, task.getNotes());
-//        cv.put(TASK_COMPLETED, task.getCompletedDate());
-//        cv.put(TASK_HIDDEN, task.getHidden());
-//        cv.put(TASK_FEE, task.getFee());
-//
-//        this.openWriteableDB();
-//        long rowID = db.insert(TASK_TABLE, null, cv);
-//        this.closeDB();
-//
-//        return rowID;
-//    }
-//
-//    public int updateTask(Task task) {
-//        ContentValues cv = new ContentValues();
-//        cv.put(TASK_LIST_ID, task.getListId());
-//        cv.put(TASK_NAME, task.getName());
-//        cv.put(TASK_NOTES, task.getNotes());
-//        cv.put(TASK_COMPLETED, task.getCompletedDate());
-//        cv.put(TASK_HIDDEN, task.getHidden());
-//        cv.put(TASK_FEE, task.getFee());
-//
-//        String where = TASK_ID + "= ?";
-//        String[] whereArgs = { String.valueOf(task.getId()) };
-//
-//        this.openWriteableDB();
-//        int rowCount = db.update(TASK_TABLE, cv, where, whereArgs);
-//        this.closeDB();
-//
-//        return rowCount;
-//    }
-//
-//    public int deleteTask(long id) {
-//        String where = TASK_ID + "= ?";
-//        String[] whereArgs = { String.valueOf(id) };
-//
-//        this.openWriteableDB();
-//        int rowCount = db.delete(TASK_TABLE, where, whereArgs);
-//        this.closeDB();
-//
-//        return rowCount;
-//    }
 
     /************************
      * Database Helper Class

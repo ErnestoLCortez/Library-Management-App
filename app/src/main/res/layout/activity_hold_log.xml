@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.example.android.bookrentalsystemforcsumblibrary.CancelHoldActivity">
+    tools:context="com.example.android.bookrentalsystemforcsumblibrary.HoldLogActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -21,6 +21,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_cancel_hold" />
+    <include layout="@layout/content_hold_log" />
+
 
 </android.support.design.widget.CoordinatorLayout>

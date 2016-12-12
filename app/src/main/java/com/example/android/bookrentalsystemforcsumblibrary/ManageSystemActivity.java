@@ -66,7 +66,5 @@ public class ManageSystemActivity extends AppCompatActivity {
 
         startActivity(new Intent(view.getContext(), TransactionLogActivity.class));
         finish();
-
-
     }
 }

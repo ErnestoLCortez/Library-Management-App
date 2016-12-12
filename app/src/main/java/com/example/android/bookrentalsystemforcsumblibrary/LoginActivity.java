@@ -21,7 +21,10 @@ import com.example.android.bookrentalsystemforcsumblibrary.transactionloganddata
 import com.example.android.bookrentalsystemforcsumblibrary.transactionloganddatabase.TransactionLogActivity;
 
 import java.text.NumberFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import static android.R.attr.author;
 
@@ -31,6 +34,12 @@ public class LoginActivity extends AppCompatActivity {
     private AlertDialog errorDialog;
     private AlertDialog confirmationDialog;
     private int errorCounter;
+
+    private LibraryBook book;
+    Date pickupDate;
+    Date returnDate;
+    LibraryUser user;
+    int reservationNum;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +55,11 @@ public class LoginActivity extends AppCompatActivity {
         errorDialog = buildDialogBox();
         confirmationDialog = buildConfirmBox();
         errorCounter = 0;
+        book = null;
+        pickupDate = null;
+        returnDate = null;
+        user = null;
+        reservationNum =0;
     }
 
     private AlertDialog buildDialogBox(){
@@ -77,14 +91,26 @@ public class LoginActivity extends AppCompatActivity {
         return builder.create();
     }
 
-    private void updateStringValues(String bookInfo, String userName, String pickupDate, String returnDate){
-
+    private void updateStringValues(){
+        Random random = new Random();
+        reservationNum = random.nextInt(999);
+        NumberFormat nf = NumberFormat.getCurrencyInstance();
         String confirmationMessage = "Is this following information correct?\n" +
-                "User Name:\t" + userName +
+                "User Name:\t" + user.getUserName() +
+                "\nReservation:\t" + reservationNum +
                 "\nPickup Date:\t" + pickupDate +
-                "\nReturn Date:\t" + returnDate + "\n";
+                "\nReturn Date:\t" + returnDate +
+                "\nTotal Fee:\t" + nf.format(calculateFee(book.getFee())) + "\n" +
+                book.toString();
 
         confirmationDialog.setMessage(confirmationMessage);
+    }
+
+    private double calculateFee(double fee){
+        long diff = returnDate.getTime() - pickupDate.getTime();
+        long hourDiff = TimeUnit.HOURS.convert(diff, TimeUnit.MILLISECONDS);
+
+        return hourDiff * fee;
     }
 
     private void loginFailed(){
@@ -95,12 +121,18 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void createHold(){
+        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String currentDate = sdfDate.format(new Date());
 
+        LogConverter log = new LogConverter("Place Hold", user.getUserName(), currentDate, book.getTitle(), sdfDate.format(pickupDate), sdfDate.format(returnDate), reservationNum, calculateFee(book.getFee()));
+        SystemDataBase db = new SystemDataBase(this);
+        db.insertLog(log);
+        finish();
     }
 
     public void signIn(View view){
         SystemDataBase db = new SystemDataBase(this);
-        LibraryUser user = db.getUser(userField.getText().toString(), passwordField.getText().toString());
+        user = db.getUser(userField.getText().toString(), passwordField.getText().toString());
 
         if(user == null){
             Toast.makeText(getBaseContext(), "Incorrect Username or Password", Toast.LENGTH_SHORT).show();
@@ -112,17 +144,16 @@ public class LoginActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         String bookInfo = "";
-        String pickupDate = "";
-        String returnDate = "";
-        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+
         if(intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
             bookInfo = intent.getStringExtra(intent.EXTRA_TEXT);
-            pickupDate = sdfDate.format((Date)intent.getSerializableExtra("PICKUPDATE"));
-            returnDate = sdfDate.format((Date)intent.getSerializableExtra("RETURNDATE"));
+            pickupDate = (Date)intent.getSerializableExtra("PICKUPDATE");
+            returnDate = (Date)intent.getSerializableExtra("RETURNDATE");
         }
 
-        LibraryBook book = new LibraryBook(bookInfo);
-        updateStringValues(bookInfo, user.getUserName(), pickupDate, returnDate);
+        book = new LibraryBook(bookInfo);
+        updateStringValues();
         confirmationDialog.show();
     }
 
